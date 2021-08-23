@@ -1,0 +1,104 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+    - develop
+
+pr:
+- develop
+
+jobs:
+- job: Job_1
+  condition: succeeded()
+  continueOnError: False
+  displayName: Static Code Analysis
+
+  pool:
+   vmImage: 'ubuntu-latest'
+
+  steps:
+  
+  - task: YarnInstaller@3
+    inputs:
+      versionSpec: '1.x'
+
+  - task: CmdLine@2
+    displayName: Junit Test run
+    inputs:
+      script: |  
+        export NODE_OPTIONS=--max_old_space_size=4096
+        cd packages/SBR
+             yarn global add jest
+             yarn add --dev jest-junit
+             yarn add jest-sonar
+             yarn run test --updateSnapshot --reporters=jest-junit --reporters=default --coverage --reporters=jest-sonar --coverageReporters=cobertura --coverageReporters=lcov --coverageReporters=html
+             ls -l *.xml
+
+  - task: PublishTestResults@2
+    inputs:
+     testResultsFormat: 'JUnit'
+     testResultsFiles: '**/junit.xml'
+
+  - task: CmdLine@2
+    inputs:
+      script: |
+        cd packages/SBR
+        ls -l
+        sed -i 's|path="src/|path="/home/vsts/work/1/s/packages/SBR/src/|g' coverage/sonar-report.xml
+        sed -i 's|SF:src|SF:/home/vsts/work/1/s/packages/SBR/src|g' coverage/lcov.info
+  
+  - task: CmdLine@2
+    displayName: Run Lint
+    inputs:
+      script: |
+       cd packages/SBR
+       ./node_modules/.bin/eslint **/src/* **/__tests__/* --format junit --no-error-on-unmatched-pattern --output-file ./reports/eslint/eslint.xml
+        yarn add --dev eslint-json
+       ./node_modules/.bin/eslint **/src/* **/__tests__/* --format node_modules/eslint-json --no-error-on-unmatched-pattern --output-file ./reports/eslint/eslint.json
+        ls -l
+        
+  - task: PublishTestResults@2
+    displayName: Eslint report
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/eslint.xml'   
+      
+  - task: SonarCloudPrepare@1
+    inputs:
+      SonarCloud: 'Azure-Sonar'
+      organization: 'sbr-dev'
+      scannerMode: 'CLI'
+      configMode: 'manual'
+      cliProjectKey: 'sbr_dev_sbr-reactnative-app'
+      cliProjectName: 'sbr-reactnative-app'
+      cliSources: 'packages/SBR/src'
+      extraProperties: |
+        sonar.sourceEncoding=UTF-8
+        sonar.exclusions=**/*.java,packages/SBR/__tests__/**,**/__snapshots__/**,**/*.tests.tsx,**/*.tsx,packages/SBR/src/__mocks__/**,packages/SBR/node_modules/**,**/build/**,packages/SBR/coverage/**,**/*.stories.js,**/*.demo.js,packages/SBR/src/**/*.spec.js,packages/SBR/src/**/*.spec.jsx,packages/SBR/src/**/*.test.js,packages/SBR/src/**/*.test.jsx,**/__tests__/*.js,**/__test__/*.js,**/test.ts,**/tests.ts,**/*.ts, **/tests/*.js
+        sonar.c.file.suffixes=-
+        sonar.cpp.file.suffixes=-
+        sonar.objc.file.suffixes=-
+        sonar.coverage.exclusions= "packages/SBR/node_modules/**","**/__tests__/**",**/test.js,"**/__test__/**","**/*.tests.tsx","**/*.tsx","**/*.test.js",**/test/**,**/build/**,packages/SBR/coverage/**,**/*.stories.js,**/*.demo.js,**/index.jsx, packages/SBR/src/**/*.spec.js,packages/SBR/src/**/*.spec.jsx,**/test.ts,**/tests.ts,**/tests/*.js,**/__snapshots__/**,**/analytics/**,**/config/**,**/config.js
+        sonar.test.inclusions=packages/SBR/src/**/*.spec.js,packages/SBR/src/**/*.spec.jsx,packages/SBR/src/**/*.test.js,packages/SBR/src/**/*.test.jsx,**/__tests__/*.js,**/__test__/*.js,"**/*.jpeg","**/*.png","**/*.svg",packages/SBR/__tests__/**
+        sonar.sources=packages/SBR/src
+        sonar.language=js
+        sonar.tests=packages/SBR/src
+        sonar.javascript.lcov.reportPaths=packages/SBR/coverage/lcov.info
+        sonar.testExecutionReportPaths=packages/SBR/coverage/sonar-report.xml
+        sonar.junit.reportPaths=packages/SBR/junit.xml
+      
+      
+  - task: SonarCloudAnalyze@1
+
+  - task: SonarCloudPublish@1
+    inputs:
+      pollingTimeoutSec: '300'
+
+  - task: sonarcloud-buildbreaker@2
+    inputs:
+      SonarCloud: 'Azure-Sonar'
+      organization: 'sbr-dev'
