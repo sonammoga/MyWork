@@ -101,4 +101,4 @@ jobs:
   - task: sonarcloud-buildbreaker@2
     inputs:
       SonarCloud: 'Azure-Sonar'
-      organization: 'sbr-dev'
+      organization: 'test-dev'
