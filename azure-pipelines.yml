@@ -70,26 +70,26 @@ jobs:
   - task: SonarCloudPrepare@1
     inputs:
       SonarCloud: 'Azure-Sonar'
-      organization: 'sbr-dev'
+      organization: 'test-dev'
       scannerMode: 'CLI'
       configMode: 'manual'
-      cliProjectKey: 'sbr_dev_sbr-reactnative-app'
-      cliProjectName: 'sbr-reactnative-app'
-      cliSources: 'packages/SBR/src'
+      cliProjectKey: 'test_dev_test-reactnative-app'
+      cliProjectName: 'test-reactnative-app'
+      cliSources: 'packages/test/src'
       extraProperties: |
         sonar.sourceEncoding=UTF-8
-        sonar.exclusions=**/*.java,packages/SBR/__tests__/**,**/__snapshots__/**,**/*.tests.tsx,**/*.tsx,packages/SBR/src/__mocks__/**,packages/SBR/node_modules/**,**/build/**,packages/SBR/coverage/**,**/*.stories.js,**/*.demo.js,packages/SBR/src/**/*.spec.js,packages/SBR/src/**/*.spec.jsx,packages/SBR/src/**/*.test.js,packages/SBR/src/**/*.test.jsx,**/__tests__/*.js,**/__test__/*.js,**/test.ts,**/tests.ts,**/*.ts, **/tests/*.js
+        sonar.exclusions=**/*.java,packages/test/__tests__/**,**/__snapshots__/**,**/*.tests.tsx,**/*.tsx,packages/test/src/__mocks__/**,packages/test/node_modules/**,**/build/**,packages/SBR/coverage/**,**/*.stories.js,**/*.demo.js,packages/SBR/src/**/*.spec.js,packages/SBR/src/**/*.spec.jsx,packages/SBR/src/**/*.test.js,packages/SBR/src/**/*.test.jsx,**/__tests__/*.js,**/__test__/*.js,**/test.ts,**/tests.ts,**/*.ts, **/tests/*.js
         sonar.c.file.suffixes=-
         sonar.cpp.file.suffixes=-
         sonar.objc.file.suffixes=-
-        sonar.coverage.exclusions= "packages/SBR/node_modules/**","**/__tests__/**",**/test.js,"**/__test__/**","**/*.tests.tsx","**/*.tsx","**/*.test.js",**/test/**,**/build/**,packages/SBR/coverage/**,**/*.stories.js,**/*.demo.js,**/index.jsx, packages/SBR/src/**/*.spec.js,packages/SBR/src/**/*.spec.jsx,**/test.ts,**/tests.ts,**/tests/*.js,**/__snapshots__/**,**/analytics/**,**/config/**,**/config.js
-        sonar.test.inclusions=packages/SBR/src/**/*.spec.js,packages/SBR/src/**/*.spec.jsx,packages/SBR/src/**/*.test.js,packages/SBR/src/**/*.test.jsx,**/__tests__/*.js,**/__test__/*.js,"**/*.jpeg","**/*.png","**/*.svg",packages/SBR/__tests__/**
-        sonar.sources=packages/SBR/src
+        sonar.coverage.exclusions= "packages/test/node_modules/**","**/__tests__/**",**/test.js,"**/__test__/**","**/*.tests.tsx","**/*.tsx","**/*.test.js",**/test/**,**/build/**,packages/SBR/coverage/**,**/*.stories.js,**/*.demo.js,**/index.jsx, packages/SBR/src/**/*.spec.js,packages/SBR/src/**/*.spec.jsx,**/test.ts,**/tests.ts,**/tests/*.js,**/__snapshots__/**,**/analytics/**,**/config/**,**/config.js
+        sonar.test.inclusions=packages/test/src/**/*.spec.js,packages/test/src/**/*.spec.jsx,packages/SBR/src/**/*.test.js,packages/SBR/src/**/*.test.jsx,**/__tests__/*.js,**/__test__/*.js,"**/*.jpeg","**/*.png","**/*.svg",packages/SBR/__tests__/**
+        sonar.sources=packages/xtest/src
         sonar.language=js
-        sonar.tests=packages/SBR/src
-        sonar.javascript.lcov.reportPaths=packages/SBR/coverage/lcov.info
-        sonar.testExecutionReportPaths=packages/SBR/coverage/sonar-report.xml
-        sonar.junit.reportPaths=packages/SBR/junit.xml
+        sonar.tests=packages/test/src
+        sonar.javascript.lcov.reportPaths=packages/test/coverage/lcov.info
+        sonar.testExecutionReportPaths=packages/test/coverage/sonar-report.xml
+        sonar.junit.reportPaths=packages/test/junit.xml
       
       
   - task: SonarCloudAnalyze@1
