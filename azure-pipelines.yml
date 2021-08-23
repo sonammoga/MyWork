@@ -31,7 +31,7 @@ jobs:
     inputs:
       script: |  
         export NODE_OPTIONS=--max_old_space_size=4096
-        cd packages/SBR
+        cd packages/test
              yarn global add jest
              yarn add --dev jest-junit
              yarn add jest-sonar
@@ -46,16 +46,16 @@ jobs:
   - task: CmdLine@2
     inputs:
       script: |
-        cd packages/SBR
+        cd packages/test
         ls -l
-        sed -i 's|path="src/|path="/home/vsts/work/1/s/packages/SBR/src/|g' coverage/sonar-report.xml
-        sed -i 's|SF:src|SF:/home/vsts/work/1/s/packages/SBR/src|g' coverage/lcov.info
+        sed -i 's|path="src/|path="/home/vsts/work/1/s/packages/test/src/|g' coverage/sonar-report.xml
+        sed -i 's|SF:src|SF:/home/vsts/work/1/s/packages/test/src|g' coverage/lcov.info
   
   - task: CmdLine@2
     displayName: Run Lint
     inputs:
       script: |
-       cd packages/SBR
+       cd packages/test
        ./node_modules/.bin/eslint **/src/* **/__tests__/* --format junit --no-error-on-unmatched-pattern --output-file ./reports/eslint/eslint.xml
         yarn add --dev eslint-json
        ./node_modules/.bin/eslint **/src/* **/__tests__/* --format node_modules/eslint-json --no-error-on-unmatched-pattern --output-file ./reports/eslint/eslint.json
