@@ -1,0 +1,104 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+variables:
+  major: 2
+  revision: $[ counter(variables['major'],001) ]
+
+name: 1.0.0.$(revision)
+
+trigger: none
+
+jobs:
+- job: Job_1
+  timeoutInMinutes: 180
+  cancelTimeoutInMinutes: 5
+  condition: succeeded()
+  continueOnError: False
+  displayName: Android App Build
+   
+
+  pool:
+    vmImage: 'macOS-latest'
+
+
+# The `certSecureFile` and `provProfileSecureFile` files are uploaded to the Azure Pipelines secure files library where they are encrypted.
+# The `P12Password` variable is set in the Azure Pipelines pipeline editor and marked 'secret' to be encrypted.
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '14.x'
+      checkLatest: true
+  - task: CmdLine@2
+    inputs:
+      script: 'echo $(revision)'
+      
+  - task: CmdLine@2
+    inputs:
+      script: |
+        cd TEST
+        yarn install --network-timeout 1000000
+
+  - task: UpdateAndroidVersionGradle@1
+    inputs:
+      buildGradlePath: 'packages/SBR/android/app/build.gradle'
+      versionCode: '$(revision)'
+      versionName: '1.0.0'
+
+  - task: Gradle@2
+    inputs:
+      gradleWrapperFile: 'packages/TEST/android/gradlew'
+      workingDirectory: 'packages/TEST/android/'
+      tasks: 'clean :app:assembleReleasestaging :app:bundleReleasestaging'
+      publishJUnitResults: false
+      javaHomeOption: 'JDKVersion'
+      jdkVersionOption: '1.8'
+      gradleOptions: '-Xmx3072m'
+      sonarQubeRunAnalysis: false
+      spotBugsAnalysis: false
+
+
+  - task: AndroidSigning@3
+    displayName: 'Sign APK'
+    inputs:
+      apkFiles: '**/*.apk'
+      apksignerKeystoreFile: 'KeyStore-TEST.jks'
+      apksignerKeystorePassword: 'xyz!'
+      apksignerKeystoreAlias: 'test_android'
+      apksignerKeyPassword: 'admin1'
+      zipalign: false
+
+  - task: CopyFiles@2
+    displayName: 'Copy APK'
+    inputs:
+      contents: '**/*.apk'
+      targetFolder: '$(build.artifactStagingDirectory)'
+      overWrite: true
+      flattenFolders: true
+  
+  - task: CopyFiles@2
+    displayName: 'Copy aab'
+    inputs:
+      contents: '**/*.aab'
+      targetFolder: '$(build.artifactStagingDirectory)'
+      overWrite: true
+      flattenFolders: true
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish APK to artifacts'
+    inputs:
+      PathtoPublish: '$(build.artifactStagingDirectory)'
+      ArtifactName: 'android'
+      publishLocation: 'Container'
+
+  - task: AppCenterDistribute@3
+    inputs:
+      serverEndpoint: 'new azure'
+      appSlug: 'App Center Slug Path'
+      appFile: '$(build.artifactstagingdirectory)/**/app-releasestaging.apk'
+      releaseNotesOption: 'input'
+      releaseNotesInput: '$(Build.SourceVersionMessage)'
+      destinationType: 'groups'
+      distributionGroupId: '00000000-0000-0000-0000-000000000000'
